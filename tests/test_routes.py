@@ -15,12 +15,14 @@ from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
 from service.models import db, Account, init_db
 from service.routes import app
+from service import talisman
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/postgres"
 )
 
 BASE_URL = "/accounts"
+HTTPS_ENVIRON = {"wsgi.url_scheme": "https"}
 
 
 ######################################################################
@@ -37,6 +39,8 @@ class TestAccountService(TestCase):
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         init_db(app)
+
+        talisman.force_https = False
 
     @classmethod
     def tearDownClass(cls):
@@ -153,41 +157,54 @@ class TestAccountService(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    class TestAccountService(TestCase):   
+   
+    def test_update_account(self):
+        """It should Update an existing Account"""
 
-        def test_update_account(self):
-            """It should Update an existing Account"""
+        account = self._create_accounts(1)[0]
 
-            account = self._create_accounts(1)[0]
+        account.name = "Jane Smith"
 
-            account.name = "Jane Smith"
+        response = self.client.put(
+            f"{BASE_URL}/{account.id}",
+            json=account.serialize(),
+            content_type="application/json"
+        )
 
-            response = self.client.put(
-                f"{BASE_URL}/{account.id}",
-                json=account.serialize(),
-                content_type="application/json"
-            )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated = response.get_json()
+        self.assertEqual(updated["name"], "Jane Smith")
 
-            updated = response.get_json()
-            self.assertEqual(updated["name"], "Jane Smith")
+    def test_delete_account(self):
+        """It should Delete an Account"""
 
-        def test_delete_account(self):
-            """It should Delete an Account"""
+        account = self._create_accounts(1)[0]
 
-            account = self._create_accounts(1)[0]
+        response = self.client.delete(
+            f"{BASE_URL}/{account.id}",
+            content_type="application/json"
+        )
 
-            response = self.client.delete(
-                f"{BASE_URL}/{account.id}",
-                content_type="application/json"
-            )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(
+            f"{BASE_URL}/{account.id}",
+            content_type="application/json"
+        )
 
-            response = self.client.get(
-                f"{BASE_URL}/{account.id}",
-                content_type="application/json"
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+    def test_security_headers(self):
+        """It should return security headers"""
+        response = self.client.get(
+            "/",
+            environ_overrides=HTTPS_ENVIRON
+        )
+
+        self.assertEqual(
+                response.headers["X-Frame-Options"],
+                "SAMEORIGIN"
             )
 
             self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
