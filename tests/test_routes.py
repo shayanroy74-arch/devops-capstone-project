@@ -8,6 +8,7 @@ Test cases can be run with the following:
 import os
 import logging
 from unittest import TestCase
+from urllib import response
 from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
 from service.models import db, Account, init_db
@@ -124,3 +125,48 @@ class TestAccountService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     # ADD YOUR TEST CASES HERE ...
+
+        
+
+    def test_get_account(self):
+        """It should Get an existing Account"""
+        test_account = self._create_accounts(1)[0]
+
+        response = self.client.get(
+            f"{BASE_URL}/{test_account.id}",
+            content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["id"], test_account.id)
+        self.assertEqual(data["name"], test_account.name)
+
+    def test_get_account_not_found(self):
+        """It should not Get an Account that is not found"""
+        response = self.client.get(
+            f"{BASE_URL}/0",
+            content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    class TestAccountService(TestCase):   
+
+        def test_update_account(self):
+            """It should Update an existing Account"""
+
+            account = self._create_accounts(1)[0]
+
+            account.name = "Jane Smith"
+
+            response = self.client.put(
+                f"{BASE_URL}/{account.id}",
+                json=account.serialize(),
+                content_type="application/json"
+            )
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+            updated = response.get_json()
+            self.assertEqual(updated["name"], "Jane Smith")
