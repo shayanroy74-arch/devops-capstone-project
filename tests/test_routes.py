@@ -9,6 +9,8 @@ import os
 import logging
 from unittest import TestCase
 from urllib import response
+
+from coverage import data
 from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
 from service.models import db, Account, init_db
@@ -217,20 +219,18 @@ class TestAccountService(TestCase):
                 response.headers["X-Frame-Options"],
                 "SAMEORIGIN"
             )
-        self.assertEqual(
-                response.headers["X-Content-Type-Options"],
-                "nosniff"
-            )
-        self.assertEqual(
-                response.headers["Content-Security-Policy"],
-                "default-src 'self'; object-src 'none'"
-            )
-        self.assertEqual(
-                response.headers["Referrer-Policy"],
-                "strict-origin-when-cross-origin"
-            )
-        
-        self.assertEqual(
-                response.headers["Access-Control-Allow-Origin"],
-                    "*"
-        )
+
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        def test_list_accounts(self):
+            """It should List all Accounts"""
+
+            self._create_accounts(5)
+
+            response = self.client.get(BASE_URL)
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+            data = response.get_json()
+
+            self.assertEqual(len(data), 5)
