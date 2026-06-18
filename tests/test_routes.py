@@ -9,6 +9,8 @@ import os
 import logging
 from unittest import TestCase
 from urllib import response
+
+from coverage import data
 from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
 from service.models import db, Account, init_db
@@ -189,3 +191,16 @@ class TestAccountService(TestCase):
             )
 
             self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        def test_list_accounts(self):
+            """It should List all Accounts"""
+
+            self._create_accounts(5)
+
+            response = self.client.get(BASE_URL)
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+            data = response.get_json()
+
+            self.assertEqual(len(data), 5)
