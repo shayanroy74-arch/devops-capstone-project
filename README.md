@@ -1,6 +1,7 @@
+![Build Status](https://github.com/shayanroy74-arch/devops-capstone-project/actions/workflows/ci-build.yaml/badge.svg)
+
 # devops-capstone-project
 
-![Build Status](https://github.com/shayanroy74-arch/devops-capstone-project/actions/workflows/ci-build.yaml/badge.svg)
 
 This project is part of the IBM DevOps Capstone Project. It implements a customer accounts microservice that provides REST APIs to create, read, update, delete, and list customer accounts.
 
