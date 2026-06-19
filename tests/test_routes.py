@@ -8,7 +8,7 @@ Test cases can be run with the following:
 import os
 import logging
 from unittest import TestCase
-from urllib import response
+
 from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
 from service.models import db, Account, init_db
@@ -126,14 +126,16 @@ class TestAccountService(TestCase):
             json=account.serialize(),
             content_type="test/html"
         )
-        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
+        )
 
     # ADD YOUR TEST CASES HERE ...
 
-        
-
     def test_get_account(self):
         """It should Get an existing Account"""
+
         test_account = self._create_accounts(1)[0]
 
         response = self.client.get(
@@ -155,7 +157,6 @@ class TestAccountService(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-   
     def test_update_account(self):
         """It should Update an existing Account"""
 
@@ -194,18 +195,18 @@ class TestAccountService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_accounts(self):
-            """It should List all Accounts"""
+        """It should List all Accounts"""
 
-            self._create_accounts(5)
+        self._create_accounts(5)
 
-            response = self.client.get(BASE_URL)
+        response = self.client.get(BASE_URL)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            data = response.get_json()
+        data = response.get_json()
 
-            self.assertEqual(len(data), 5)
-        
+        self.assertEqual(len(data), 5)
+
     def test_security_headers(self):
         """It should return security headers"""
         response = self.client.get(
@@ -229,8 +230,8 @@ class TestAccountService(TestCase):
                 response.headers["Referrer-Policy"],
                 "strict-origin-when-cross-origin"
             )
-        
+
         self.assertEqual(
-                response.headers["Access-Control-Allow-Origin"],
-                    "*"
+            response.headers["Access-Control-Allow-Origin"],
+            "*"
         )
